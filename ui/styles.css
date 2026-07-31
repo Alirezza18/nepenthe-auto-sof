@@ -1,0 +1,219 @@
+/* =========================================================
+   NEPENTHE | Auto-SOF  —  UI Theme
+   Dark, glass-panel "control room" aesthetic.
+   ========================================================= */
+
+:root {
+  --nep-bg: #0b0f1a;
+  --nep-panel: #121826;
+  --nep-panel-border: #23304a;
+  --nep-accent: #38bdf8;
+  --nep-accent-2: #a78bfa;
+  --nep-text: #e5e9f2;
+  --nep-text-dim: #8a93a8;
+  --nep-good: #34d399;
+  --nep-warn: #fbbf24;
+  --nep-bad: #f87171;
+}
+
+html, body, [data-testid="stAppViewContainer"], .main {
+  background: radial-gradient(1200px 600px at 10% -10%, #101a2e 0%, var(--nep-bg) 55%) !important;
+  color: var(--nep-text);
+}
+
+[data-testid="stSidebar"] {
+  background: #0a0e18;
+  border-right: 1px solid var(--nep-panel-border);
+}
+
+/* ---------- Sidebar ---------- */
+.nepenthe-logo {
+  font-family: "Courier New", monospace;
+  font-weight: 800;
+  letter-spacing: 4px;
+  font-size: 1.4rem;
+  background: linear-gradient(90deg, var(--nep-accent), var(--nep-accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-top: 4px;
+}
+.logo-mini { font-size: 1.15rem; }
+
+.sidebar-brief {
+  color: var(--nep-text-dim);
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.glow-divider {
+  height: 1px;
+  margin: 14px 0;
+  background: linear-gradient(90deg, transparent, var(--nep-accent), transparent);
+  opacity: 0.55;
+}
+
+.sidebar-metrics { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-label {
+  color: var(--nep-text-dim);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.sidebar-value {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  color: var(--nep-text);
+}
+.sidebar-footer {
+  color: var(--nep-text-dim);
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  text-align: center;
+  margin-top: 18px;
+}
+
+/* ---------- Hero banner ---------- */
+.hero-banner {
+  padding: 22px 26px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #101a30 0%, #141b2e 100%);
+  border: 1px solid var(--nep-panel-border);
+  margin-bottom: 14px;
+}
+.hero-title {
+  font-family: "Courier New", monospace;
+  font-weight: 800;
+  letter-spacing: 6px;
+  font-size: 1.6rem;
+  background: linear-gradient(90deg, var(--nep-accent), var(--nep-accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-subtitle {
+  color: var(--nep-text-dim);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.hero-copy {
+  color: var(--nep-text);
+  opacity: 0.85;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 4px 0 18px 0;
+}
+
+/* ---------- Generic control / step2 module cards ---------- */
+.control-module, .step2-module {
+  background: var(--nep-panel);
+  border: 1px solid var(--nep-panel-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.module-title {
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  font-size: 0.95rem;
+  color: var(--nep-text);
+}
+.module-subtitle {
+  color: var(--nep-text-dim);
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ---------- Metric pills / lists ---------- */
+.metric-stack { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 10px 0; }
+.metric-pill {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--nep-accent);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.5px;
+}
+.metric-list {
+  color: var(--nep-text-dim);
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+.telemetry-block {
+  background: #0d1320;
+  border: 1px solid var(--nep-panel-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-family: "Courier New", monospace;
+  font-size: 0.78rem;
+  color: var(--nep-good);
+}
+
+/* ---------- Step 2 specific cards ---------- */
+.step2-warning-card {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: var(--nep-warn);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  margin: 8px 0;
+}
+.step2-selection-card {
+  background: #0d1320;
+  border: 1px solid var(--nep-panel-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+.step2-selection-title {
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--nep-text-dim);
+  margin-bottom: 4px;
+}
+
+/* ---------- Model registry cards ---------- */
+.registry-card, .step2-registry-card {
+  background: #0d1320;
+  border: 1px solid var(--nep-panel-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.registry-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--nep-text);
+  margin-bottom: 4px;
+}
+
+/* ---------- Simulated terminal ---------- */
+.terminal-log {
+  background: #05070d;
+  border: 1px solid var(--nep-panel-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: "Courier New", monospace;
+  font-size: 0.78rem;
+  color: var(--nep-good);
+  max-height: 320px;
+  overflow-y: auto;
+  line-height: 1.7;
+}
+
+/* ---------- Streamlit widget tweaks ---------- */
+button[kind="primary"], .stButton > button {
+  border-radius: 8px !important;
+  border: 1px solid rgba(56, 189, 248, 0.45) !important;
+}
