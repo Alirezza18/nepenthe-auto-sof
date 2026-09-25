@@ -98,7 +98,7 @@ so runs are bit-for-bit reproducible.
 
 ## Screenshots
 
-> Six-step workflow, dark "control room" theme. *Captured from the running app.*
+> Six-step workflow, dark "control room" theme. *Rendered from the app's own stylesheet (`ui/styles.css`); the HTML sources sit next to the images.*
 
 | Proxy Modeling — 21-model surrogate registry with live training log | Optimization — ten solvers, reproducible seeds, Pareto front |
 |:---:|:---:|
