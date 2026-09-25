@@ -10,6 +10,8 @@
   <p align="center">
     <a href="https://www.python.org/"><img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white"></a>
     <a href="https://streamlit.io/"><img alt="Built with Streamlit" src="https://img.shields.io/badge/built%20with-Streamlit-FF4B4B?logo=streamlit&logoColor=white"></a>
+    <a href="https://github.com/Alirezza18/nepenthe-auto-sof/actions/workflows/ci.yml"><img alt="ci" src="https://github.com/Alirezza18/nepenthe-auto-sof/actions/workflows/ci.yml/badge.svg"></a>
+    <a href="https://github.com/Alirezza18?tab=packages"><img alt="Docker image on ghcr.io" src="https://img.shields.io/badge/ghcr.io-alirezza18%2Fauto--sof-blue?logo=docker&logoColor=white"></a>
     <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
     <a href="https://github.com/Alirezza18/nepenthe-auto-sof/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Alirezza18/nepenthe-auto-sof?style=social"></a>
   </p>
