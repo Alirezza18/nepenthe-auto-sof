@@ -1,0 +1,14 @@
+# Never bake these into the image
+.git
+.github
+.venv
+venv
+__pycache__
+*.py[cod]
+*.joblib
+logs
+docs/screenshots
+.dockerignore
+Dockerfile
+docker-compose.yml
+.claude
