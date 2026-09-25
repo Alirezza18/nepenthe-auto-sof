@@ -210,11 +210,7 @@ If Auto-SOF supports your research, please cite it:
 
 **[Alireza Karimi](https://github.com/Alirezza18)** — Computational Building Scientist,
 PhD candidate (Architecture), Universidad de Sevilla.
-Auto-SOF is one of two named research frameworks he maintains; the other,
-[Urban-Future-Weather Engine](https://github.com/Alirezza18), is under active development.
-
-- ORCID: [0000-0002-6296-9496](https://orcid.org/0000-0002-6296-9496)
-
+ 
 ## License
 
 [MIT](LICENSE)
