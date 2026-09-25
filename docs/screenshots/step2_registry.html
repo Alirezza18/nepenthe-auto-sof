@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root{--bg:#0b0f1a;--panel:#121826;--border:#23304a;--accent:#38bdf8;--accent2:#a78bfa;--text:#e5e9f2;--dim:#8a93a8;--good:#34d399;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1536px;height:1010px;display:flex;background:radial-gradient(1200px 600px at 10% -10%,#101a2e 0%,var(--bg) 55%);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden;}
+  .sidebar{width:230px;min-width:230px;background:#0a0e18;border-right:1px solid var(--border);padding:16px 14px;display:flex;flex-direction:column;}
+  .logo{font-family:"Courier New",monospace;font-weight:800;letter-spacing:4px;font-size:1.15rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .brief{color:var(--dim);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+  .divider{height:1px;margin:12px 0;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.55;}
+  .label{color:var(--dim);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;}
+  .value{font-family:"Courier New",monospace;font-size:.8rem;color:var(--text);margin-top:3px;}
+  .radio{margin-top:10px;}
+  .radio-item{display:flex;align-items:center;gap:7px;font-size:.72rem;color:var(--dim);padding:4px 0;}
+  .radio-item .dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--dim);}
+  .radio-item.active{color:var(--text);font-weight:600;}
+  .radio-item.active .dot{border-color:var(--accent);background:var(--accent);}
+  .footer{color:var(--dim);font-size:.6rem;letter-spacing:1.5px;text-align:center;margin-top:auto;}
+  .main{flex:1;padding:22px 26px;overflow:hidden;}
+  .hero{padding:20px 24px;border-radius:14px;background:linear-gradient(135deg,#101a30 0%,#141b2e 100%);border:1px solid var(--border);margin-bottom:12px;}
+  .hero-title{font-family:"Courier New",monospace;font-weight:800;letter-spacing:6px;font-size:1.55rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;display:inline;}
+  .hero-sub{color:var(--dim);font-size:.76rem;letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+  .hero-copy{color:var(--text);opacity:.85;font-size:.9rem;line-height:1.5;margin:8px 0 0 0;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:12px;}
+  .card-title{font-weight:700;letter-spacing:1.5px;font-size:.9rem;}
+  .card-sub{color:var(--dim);font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+  .pill{display:inline-block;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:var(--accent);padding:3px 10px;border-radius:999px;font-size:.68rem;font-family:"Courier New",monospace;margin-right:6px;margin-bottom:6px;}
+  .expander{border:1px solid var(--border);border-radius:10px;background:#0d1320;margin-bottom:9px;overflow:hidden;}
+  .expander-head{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;font-size:.78rem;font-weight:600;letter-spacing:.5px;color:var(--text);background:#0f1524;}
+  .expander-head .chev{color:var(--dim);font-size:.7rem;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;}
+  .model{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:9px 12px;}
+  .model-name{font-weight:600;font-size:.78rem;margin-bottom:3px;}
+  .formula{font-family:"Cambria Math","Times New Roman",serif;font-style:italic;font-size:.8rem;color:var(--accent2);}
+  .chk{float:right;font-size:.68rem;color:var(--dim);}
+  .chk .box{display:inline-block;width:11px;height:11px;border:1px solid var(--dim);border-radius:2px;vertical-align:-1px;margin-left:4px;position:relative;}
+  .chk.on .box{background:var(--accent);border-color:var(--accent);}
+  .chk.on .box:after{content:"✓";color:#04101d;font-size:9px;position:absolute;left:1px;top:-2px;font-weight:700;}
+  .launch{width:100%;text-align:center;padding:10px;border-radius:8px;border:1px solid rgba(56,189,248,.45);background:rgba(56,189,248,.10);color:var(--text);font-weight:600;font-size:.88rem;letter-spacing:.5px;}
+  .terminal{background:#05070d;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:"Courier New",monospace;font-size:.74rem;color:var(--good);line-height:1.7;}
+  .cols{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;}
+  .steps{display:flex;gap:6px;margin-bottom:12px;}
+  .step{flex:1;text-align:center;font-size:.62rem;letter-spacing:1px;text-transform:uppercase;color:var(--dim);padding:6px 4px;border:1px solid var(--border);border-radius:8px;background:#0d1320;}
+  .step.active{color:#04101d;background:var(--accent);border-color:var(--accent);font-weight:700;}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">NEPENTHE</div>
+    <div class="brief">Auto-SOF · Control Matrix</div>
+    <div class="divider"></div>
+    <div class="label">Local Orbit</div>
+    <div class="value">Kernel 2.4.0</div>
+    <div class="value">2 proxies</div>
+    <div class="value">1 clusters</div>
+    <div class="divider"></div>
+    <div class="label">Cognitive Nodes</div>
+    <div class="radio">
+      <div class="radio-item"><span class="dot"></span>STEP 0 — WELCOME</div>
+      <div class="radio-item"><span class="dot"></span>STEP 1 — DATA INTAKE</div>
+      <div class="radio-item active"><span class="dot"></span>STEP 2 — PROXY MODELING</div>
+      <div class="radio-item"><span class="dot"></span>STEP 3 — OPTIMIZATION</div>
+      <div class="radio-item"><span class="dot"></span>STEP 4 — CONTROL ROOM</div>
+      <div class="radio-item"><span class="dot"></span>STEP 5 — REPORTING</div>
+    </div>
+    <div class="divider"></div>
+    <div class="label">Project</div>
+    <div class="value">💾 Save Project</div>
+    <div class="value">📂 Load Project (.joblib)</div>
+    <div class="footer">SAFE MODE · CORE LINK</div>
+  </div>
+  <div class="main">
+    <div class="hero">
+      <span class="hero-title">NEPENTHE</span>
+      <div class="hero-sub">STEP 2 · PROXY MODELING &amp; SURROGATE REGISTRY</div>
+      <div class="hero-copy">The proxy-modeling workspace focuses on surrogate architecture selection, ensemble routing, and model queue activation.</div>
+    </div>
+    <div class="steps">
+      <div class="step">0 Welcome</div><div class="step">1 Data</div><div class="step active">2 Proxy Modeling</div><div class="step">3 Optimization</div><div class="step">4 Control Room</div><div class="step">5 Reporting</div>
+    </div>
+    <div class="card">
+      <div class="card-title">ARCHITECTURAL STRATEGY CONTROL</div>
+      <div class="card-sub">Select the surrogate execution path</div>
+      <span class="pill">◉ Single Surrogate Strategy</span>
+      <span class="pill" style="opacity:.65">○ Hybrid Stacked Ensemble Pipeline</span>
+    </div>
+    <div class="card">
+      <div class="card-title">MATHEMATICAL SURROGATE REGISTRY</div>
+      <div class="card-sub">Root-based model queue · 21 surrogates · select active models</div>
+      <div class="expander">
+        <div class="expander-head"><span>ROOT A — NON-PARAMETRIC PROBABILISTIC VARIETIES</span><span class="chev">▲</span></div>
+        <div class="grid">
+          <div class="model"><span class="chk on">Enable<span class="box"></span></span><div class="model-name">Gaussian Process Regression (GPR / Kriging)</div><div class="formula">f(x) ∼ 𝒢𝒫(m(x), k(x, x′))</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">Support Vector Regression (SVR)</div><div class="formula">f(x) = Σᵢ αᵢ K(xᵢ, x) + b</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">Radial Basis Function (RBF) Networks</div><div class="formula">f(x) = Σⱼ wⱼ φ(‖x−cⱼ‖)</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">Bayesian Ridge Regression</div><div class="formula">y = Xw + ε</div></div>
+        </div>
+      </div>
+      <div class="expander">
+        <div class="expander-head"><span>ROOT B — REGULARIZED PARAMETRIC &amp; LINEAR VARIETIES</span><span class="chev">▲</span></div>
+        <div class="grid">
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">Ridge Regression</div><div class="formula">min_w ‖Xw−y‖²₂ + α‖w‖²₂</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">Lasso Regression</div><div class="formula">min_w ‖Xw−y‖²₂ + α‖w‖₁</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">ElasticNet</div><div class="formula">min_w ‖Xw−y‖²₂ + α₁‖w‖₁ + α₂‖w‖²₂</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">Orthogonal Matching Pursuit (OMP)</div><div class="formula">min_w ‖y − Xw‖²₂</div></div>
+        </div>
+      </div>
+      <div class="expander">
+        <div class="expander-head"><span>ROOT C — ENSEMBLE, STEPWISE LEAF &amp; DEEP ARCHITECTURES</span><span class="chev">▲</span></div>
+        <div class="grid">
+          <div class="model"><span class="chk on">Enable<span class="box"></span></span><div class="model-name">Random Forest</div><div class="formula">ŷᵢ = Σₖ fₖ(xᵢ)</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">Gradient Boosted Regression Trees (GBRT)</div><div class="formula">ŷᵢ = Σₖ fₖ(xᵢ)</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">XGBoost</div><div class="formula">ŷᵢ = Σₖ fₖ(xᵢ)</div></div>
+          <div class="model"><span class="chk">Enable<span class="box"></span></span><div class="model-name">DNN / MLP</div><div class="formula">y = σ(W₂σ(W₁x+b₁)+b₂)</div></div>
+        </div>
+      </div>
+      <div class="launch">⚡ LAUNCH SURROGATE TRAINING ENGINE</div>
+    </div>
+    <div class="card">
+      <div class="card-title">SIMULATED TERMINAL</div>
+      <div class="card-sub">Training dispatcher · live execution trace</div>
+      <div class="terminal">
+        [READY] Dataset intake pipeline online.<br>
+        [EXEC] Training Random Forest (1/2)...<br>
+        [SUCCESS] Random Forest trained successfully. Target: EUI → R²: 0.93, RMSE: 2.71 | 5-fold CV R²: 0.91±0.03<br>
+        [EXEC] Training GPR (2/2)...<br>
+        [SUCCESS] Training pipeline completed successfully.
+      </div>
+    </div>
+  </div>
+</body>
+</html>

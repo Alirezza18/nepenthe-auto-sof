@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root{--bg:#0b0f1a;--panel:#121826;--border:#23304a;--accent:#38bdf8;--accent2:#a78bfa;--text:#e5e9f2;--dim:#8a93a8;--good:#34d399;--warn:#fbbf24;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1536px;height:1010px;display:flex;background:radial-gradient(1200px 600px at 10% -10%,#101a2e 0%,var(--bg) 55%);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden;}
+  .sidebar{width:230px;min-width:230px;background:#0a0e18;border-right:1px solid var(--border);padding:16px 14px;display:flex;flex-direction:column;}
+  .logo{font-family:"Courier New",monospace;font-weight:800;letter-spacing:4px;font-size:1.15rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .brief{color:var(--dim);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+  .divider{height:1px;margin:12px 0;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.55;}
+  .label{color:var(--dim);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;}
+  .value{font-family:"Courier New",monospace;font-size:.8rem;color:var(--text);margin-top:3px;}
+  .radio{margin-top:10px;}
+  .radio-item{display:flex;align-items:center;gap:7px;font-size:.72rem;color:var(--dim);padding:4px 0;}
+  .radio-item .dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--dim);}
+  .radio-item.active{color:var(--text);font-weight:600;}
+  .radio-item.active .dot{border-color:var(--accent);background:var(--accent);}
+  .footer{color:var(--dim);font-size:.6rem;letter-spacing:1.5px;text-align:center;margin-top:auto;}
+  .main{flex:1;padding:22px 26px;overflow:hidden;}
+  .hero{padding:20px 24px;border-radius:14px;background:linear-gradient(135deg,#101a30 0%,#141b2e 100%);border:1px solid var(--border);margin-bottom:12px;}
+  .hero-title{font-family:"Courier New",monospace;font-weight:800;letter-spacing:6px;font-size:1.55rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;display:inline;}
+  .hero-sub{color:var(--dim);font-size:.76rem;letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+  .hero-copy{color:var(--text);opacity:.85;font-size:.9rem;line-height:1.5;margin:8px 0 0 0;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:12px;}
+  .card-title{font-weight:700;letter-spacing:1.5px;font-size:.9rem;}
+  .card-sub{color:var(--dim);font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+  .pill{display:inline-block;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:var(--accent);padding:3px 10px;border-radius:999px;font-size:.68rem;font-family:"Courier New",monospace;margin-right:6px;margin-bottom:6px;}
+  .cols{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;}
+  .steps{display:flex;gap:6px;margin-bottom:12px;}
+  .step{flex:1;text-align:center;font-size:.62rem;letter-spacing:1px;text-transform:uppercase;color:var(--dim);padding:6px 4px;border:1px solid var(--border);border-radius:8px;background:#0d1320;}
+  .step.active{color:#04101d;background:var(--accent);border-color:var(--accent);font-weight:700;}
+  table{width:100%;border-collapse:collapse;font-size:.74rem;}
+  th{color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-size:.62rem;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);}
+  td{padding:6px 8px;border-bottom:1px solid rgba(35,48,74,.5);}
+  .mono{font-family:"Courier New",monospace;color:var(--accent);}
+  .tag{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.35);color:var(--accent2);padding:2px 8px;border-radius:999px;font-size:.64rem;}
+  .scatter{position:relative;height:210px;border:1px solid var(--border);border-radius:8px;background:#05070d;margin-top:8px;}
+  .axis{position:absolute;background:var(--border);}
+  .ax-label{position:absolute;color:var(--dim);font-size:.62rem;font-family:"Courier New",monospace;}
+  .pt{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--accent);opacity:.85;}
+  .pt-hl{width:11px;height:11px;background:var(--good);box-shadow:0 0 8px rgba(52,211,153,.7);}
+  .run{width:100%;text-align:center;padding:10px;border-radius:8px;border:1px solid rgba(56,189,248,.45);background:rgba(56,189,248,.10);color:var(--text);font-weight:600;font-size:.88rem;letter-spacing:.5px;margin-bottom:10px;}
+  .progress{height:8px;border-radius:6px;background:#0d1320;border:1px solid var(--border);overflow:hidden;margin-bottom:10px;}
+  .progress .fill{height:100%;width:78%;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .seed{font-family:"Courier New",monospace;font-size:.74rem;color:var(--dim);margin-bottom:8px;}
+  .seed b{color:var(--warn);}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">NEPENTHE</div>
+    <div class="brief">Auto-SOF · Control Matrix</div>
+    <div class="divider"></div>
+    <div class="label">Local Orbit</div>
+    <div class="value">Kernel 2.4.0</div>
+    <div class="value">2 proxies</div>
+    <div class="value">1 clusters</div>
+    <div class="divider"></div>
+    <div class="label">Cognitive Nodes</div>
+    <div class="radio">
+      <div class="radio-item"><span class="dot"></span>STEP 0 — WELCOME</div>
+      <div class="radio-item"><span class="dot"></span>STEP 1 — DATA INTAKE</div>
+      <div class="radio-item"><span class="dot"></span>STEP 2 — PROXY MODELING</div>
+      <div class="radio-item active"><span class="dot"></span>STEP 3 — OPTIMIZATION</div>
+      <div class="radio-item"><span class="dot"></span>STEP 4 — CONTROL ROOM</div>
+      <div class="radio-item"><span class="dot"></span>STEP 5 — REPORTING</div>
+    </div>
+    <div class="divider"></div>
+    <div class="label">Project</div>
+    <div class="value">💾 Save Project</div>
+    <div class="value">📂 Load Project (.joblib)</div>
+    <div class="footer">SAFE MODE · CORE LINK</div>
+  </div>
+  <div class="main">
+    <div class="hero">
+      <span class="hero-title">NEPENTHE</span>
+      <div class="hero-sub">STEP 3 · OPTIMIZATION &amp; CONTROL POLICY</div>
+      <div class="hero-copy">Search the trained surrogate(s) for a Pareto-optimal set of designs — pick the solver that fits your problem: a genetic algorithm, a Monte Carlo baseline, or Differential Evolution.</div>
+    </div>
+    <div class="steps">
+      <div class="step">0 Welcome</div><div class="step">1 Data</div><div class="step">2 Proxy Modeling</div><div class="step active">3 Optimization</div><div class="step">4 Control Room</div><div class="step">5 Reporting</div>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="card">
+          <div class="card-title">OPTIMIZATION ALGORITHM</div>
+          <div class="card-sub">Pick the solver that matches your problem and time budget</div>
+          <span class="pill">◉ Metaheuristic</span>
+          <span class="pill" style="opacity:.65">○ Model-Based / Hybrid</span>
+          <div class="radio" style="margin-top:12px">
+            <div class="radio-item active"><span class="dot"></span>🧬 NSGA-II <span class="tag">recommended</span></div>
+            <div class="radio-item"><span class="dot"></span>🧬 NSGA-III</div>
+            <div class="radio-item"><span class="dot"></span>🧬 Steady-State NSGA-II</div>
+            <div class="radio-item"><span class="dot"></span>📊 HypE</div>
+            <div class="radio-item"><span class="dot"></span>🧬 Genetic Algorithm (GA)</div>
+            <div class="radio-item"><span class="dot"></span>🐜 Ant Colony Optimization (ACOR)</div>
+            <div class="radio-item"><span class="dot"></span>🎲 Random Search</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">SEARCH SPACE BOUNDS</div>
+          <div class="card-sub">Derived from the training dataset · adjustable per feature</div>
+          <div class="seed">Temp ∈ [<b>12.4</b>, <b>33.1</b>] &nbsp;·&nbsp; Press ∈ [<b>95.2</b>, <b>107.8</b>] &nbsp;·&nbsp; Flow ∈ [<b>28.0</b>, <b>62.4</b>]</div>
+          <div class="seed">🎲 Random seed: <b>42</b> — same seed ⇒ same Pareto front</div>
+          <div class="run">🚀 RUN OPTIMIZATION</div>
+          <div class="progress"><div class="fill"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">SURROGATE SELECTION</div>
+          <div class="card-sub">Choose the trained model to optimize against</div>
+          <span class="pill">2: Random Forest → [EUI] (Single Surrogate Strategy)</span>
+        </div>
+        <div class="card">
+          <div class="card-title">PARETO FRONT</div>
+          <div class="card-sub">Non-dominated design candidates · seed = 42</div>
+          <table>
+            <tr><th>Temp</th><th>Press</th><th>Flow</th><th>EUI ↓</th></tr>
+            <tr><td class="mono">13.21</td><td class="mono">101.40</td><td class="mono">57.90</td><td class="mono">58.31</td></tr>
+            <tr><td class="mono">17.65</td><td class="mono">99.87</td><td class="mono">49.22</td><td class="mono">57.02</td></tr>
+            <tr><td class="mono">21.03</td><td class="mono">103.11</td><td class="mono">44.18</td><td class="mono">56.44</td></tr>
+            <tr><td class="mono">25.47</td><td class="mono">98.65</td><td class="mono">38.75</td><td class="mono">55.90</td></tr>
+            <tr><td class="mono">29.82</td><td class="mono">102.33</td><td class="mono">31.60</td><td class="mono">55.61</td></tr>
+          </tr>
+          </table>
+          <div class="scatter">
+            <div class="axis" style="left:30px;top:10px;bottom:24px;width:1px"></div>
+            <div class="axis" style="left:30px;bottom:24px;right:12px;height:1px"></div>
+            <div class="ax-label" style="left:36px;bottom:6px">Flow (design variable)</div>
+            <div class="ax-label" style="left:2px;top:8px">EUI</div>
+            <div class="pt" style="left:19%;bottom:34%"></div>
+            <div class="pt" style="left:31%;bottom:42%"></div>
+            <div class="pt" style="left:43%;bottom:52%"></div>
+            <div class="pt" style="left:56%;bottom:63%"></div>
+            <div class="pt pt-hl" style="left:70%;bottom:78%"></div>
+            <div class="pt" style="left:82%;bottom:66%;opacity:.4"></div>
+            <div class="pt" style="left:88%;bottom:30%;opacity:.4"></div>
+          </div>
+          <div style="font-size:.66rem;color:var(--dim);margin-top:6px">NSGA-II found 12 non-dominated designs · pop 100 × 60 generations</div>
+          <div class="run" style="margin-top:8px">⬇️ Download Pareto Front (CSV)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

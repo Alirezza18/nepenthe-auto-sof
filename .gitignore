@@ -1,0 +1,28 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Environments ---
+.venv/
+venv/
+env/
+
+# --- Runtime artifacts ---
+logs/
+*.log
+
+# --- Streamlit / cloud ---
+.streamlit/secrets.toml
+
+# --- OS ---
+Thumbs.db
+.DS_Store
+
+# --- Editors / local agent tooling ---
+.idea/
+.vscode/
+.agents/
