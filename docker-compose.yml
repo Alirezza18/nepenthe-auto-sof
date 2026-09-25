@@ -1,0 +1,20 @@
+services:
+  auto-sof:
+    build: .
+    image: auto-sof:latest
+    container_name: auto-sof
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    # Session files / saved .joblib projects survive container rebuilds:
+    volumes:
+      - auto-sof-data:/home/sofuser/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=4).read()==b'ok' else 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 25s
+      retries: 3
+
+volumes:
+  auto-sof-data:

@@ -116,6 +116,23 @@ streamlit run app.py
 Then open the URL Streamlit prints (usually `http://localhost:8501`).
 Tick **Try with Demo Data** in Step 1 to explore the full workflow without a dataset.
 
+### Run with Docker (no Python setup needed)
+
+```bash
+# one command, everything included:
+docker run --rm -p 8501:8501 ghcr.io/alirezza18/auto-sof:latest
+
+# or build locally / use compose:
+git clone https://github.com/Alirezza18/nepenthe-auto-sof.git
+cd nepenthe-auto-sof
+docker compose up          # builds and serves on http://localhost:8501
+```
+
+The image runs as an unprivileged user, ships a health check on
+`/_stcore/health`, and (via compose) persists saved `.joblib` session files
+in the `auto-sof-data` volume. Every push is built and smoke-tested in CI
+(unit tests → image build → live container health + UI check).
+
 ### Deploy
 
 Free hosting: push this repo to your account and deploy on
