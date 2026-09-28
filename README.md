@@ -92,9 +92,16 @@ so runs are bit-for-bit reproducible.
    Pareto table + 2-objective scatter plot, CSV export.
 5. **Control Room** — live design sliders feeding the surrogate in real time; load any
    Pareto design straight onto the sliders; per-target R² confidence readouts.
+   Decision-support layer: **inverse design** (enter desired outcomes, a GA finds
+   designs that achieve them), **decision helper** (Pareto knee detection + TOPSIS
+   ranking with per-objective weight sliders and a recommended compromise design),
+   **uncertainty audit** (ensemble/GP/bootstrap prediction spread), and **adaptive
+   sampling** (acquisition-scored suggestions for the next simulation campaign).
 6. **Reporting** — model performance ledger (holdout + CV), permutation feature importance
    with bar chart, optimization summary (best design per objective), and the exportable
-   decision package (Markdown / Excel / CSV-zip fallback).
+   decision package (Markdown / HTML decision report / Excel / CSV-zip fallback) — the
+   report now includes the TOPSIS ranking, knee point, inverse-design candidates and
+   uncertainty highlights.
 
 </details>
 

@@ -5,6 +5,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added
+- **Decision-support layer (STEP 4 · Control Room)** — `core/decision.py`:
+  inverse design (target-seeking GA over the surrogate), Pareto knee detection
+  + TOPSIS ranking with objective-weight sliders, prediction-uncertainty audit
+  (stacked-ensemble spread / GP posterior / bootstrap refits), and adaptive
+  sampling (acquisition-scored suggestions for the next simulation campaign)
+- One-click HTML decision report (STEP 5) including ranking, knee point,
+  inverse-design candidates and uncertainty highlights
+- Streamlit AppTest UI smoke tests alongside unit tests (40/40 green)
+
 ### Changed
 - Citation block upgraded to APA 7 / IEEE / version-pinned BibTeX; GitHub "Cite this repository" pointer added
 - `CITATION.cff` enriched (affiliation, license, keywords, abstract) for richer citation exports
