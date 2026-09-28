@@ -31,6 +31,14 @@ from core.optimizer import (
     run_rbf_surrogate_assisted,
     run_ann_surrogate_assisted,
 )
+from core.decision import (
+    inverse_design,
+    pareto_knee,
+    predict_with_uncertainty,
+    recommend_designs,
+    suggest_next_simulations,
+    topsis_rank,
+)
 
 if "current_step" not in st.session_state:
     st.session_state.current_step = "STEP 0 — WELCOME / DIAGNOSTICS"
@@ -899,6 +907,8 @@ elif current_step == "STEP 2 — PROXY MODELING":
                             "metrics": metrics,
                             "cv_metrics": cv_metrics,
                             "strategy": architecture_strategy,
+                            "x_train": x_train,
+                            "y_train": y_train,
                         }
                         st.session_state.trained_surrogates.append(surrogate_payload)
 
@@ -1261,7 +1271,7 @@ elif current_step == "STEP 4 — CONTROL ROOM":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div class='hero-copy'>Explore designs interactively: drag feature sliders and watch the surrogate's live predictions, or load a candidate straight from the Pareto front.</div>",
+        "<div class='hero-copy'>Explore designs interactively, ask the surrogate for designs that hit your targets, audit its uncertainty, and rank the Pareto front into a decision.</div>",
         unsafe_allow_html=True,
     )
 
@@ -1288,63 +1298,294 @@ elif current_step == "STEP 4 — CONTROL ROOM":
         target_names = surrogate_payload["target_names"]
         numeric_feature_source = dataset[feature_names].apply(pd.to_numeric, errors="coerce")
 
-        slider_col, readout_col = st.columns([1.1, 0.9], gap="large")
+        # shared design-space bounds for the selected surrogate
+        bounds_list = []
+        for feature_name in feature_names:
+            col_series = numeric_feature_source[feature_name]
+            low, high = float(col_series.min()), float(col_series.max())
+            if not np.isfinite(low) or not np.isfinite(high) or low == high:
+                low, high = low - 1.0, low + 1.0
+            bounds_list.append((low, high))
 
-        with slider_col:
-            st.markdown("<div class='control-module'>", unsafe_allow_html=True)
-            st.markdown("<div class='module-title'>DESIGN VARIABLES</div>", unsafe_allow_html=True)
-            st.markdown("<div class='module-subtitle'>LIVE SLIDERS · SURROGATE FEEDS PREDICTIONS BELOW</div>", unsafe_allow_html=True)
+        control_tabs = st.tabs([
+            "🎛️ Design sliders",
+            "🎯 Inverse design",
+            "📊 Uncertainty",
+            "🧪 Suggest simulations",
+            "🏆 Decision helper",
+        ])
 
-            has_matching_pareto = (
-                pareto_df is not None and opt_meta is not None and opt_meta["surrogate_index"] == selected_idx
-            )
-            if has_matching_pareto:
-                pareto_choice = st.selectbox(
-                    "Load a Pareto design",
-                    ["— manual —"] + [f"Design {i}" for i in range(len(pareto_df))],
-                    key="step4_pareto_choice",
+        # -----------------------------------------------------------
+        # TAB 1 · design sliders (live what-if)
+        # -----------------------------------------------------------
+        with control_tabs[0]:
+            slider_col, readout_col = st.columns([1.1, 0.9], gap="large")
+
+            with slider_col:
+                st.markdown("<div class='control-module'>", unsafe_allow_html=True)
+                st.markdown("<div class='module-title'>DESIGN VARIABLES</div>", unsafe_allow_html=True)
+                st.markdown("<div class='module-subtitle'>LIVE SLIDERS · SURROGATE FEEDS PREDICTIONS BELOW</div>", unsafe_allow_html=True)
+
+                has_matching_pareto = (
+                    pareto_df is not None and opt_meta is not None and opt_meta["surrogate_index"] == selected_idx
                 )
-            else:
-                pareto_choice = "— manual —"
-
-            slider_values = {}
-            for feature_name in feature_names:
-                col_series = numeric_feature_source[feature_name]
-                low, high = float(col_series.min()), float(col_series.max())
-                if not np.isfinite(low) or not np.isfinite(high) or low == high:
-                    low, high = low - 1.0, low + 1.0
-                if pareto_choice != "— manual —":
-                    design_idx = int(pareto_choice.split(" ")[1])
-                    default_val = float(pareto_df.iloc[design_idx][feature_name])
+                if has_matching_pareto:
+                    pareto_choice = st.selectbox(
+                        "Load a Pareto design",
+                        ["— manual —"] + [f"Design {i}" for i in range(len(pareto_df))],
+                        key="step4_pareto_choice",
+                    )
                 else:
-                    default_val = float(col_series.median())
-                default_val = float(np.clip(default_val, low, high))
-                slider_values[feature_name] = st.slider(
-                    feature_name, min_value=low, max_value=high, value=default_val, key=f"step4_slider_{feature_name}"
+                    pareto_choice = "— manual —"
+
+                slider_values = {}
+                for feature_name in feature_names:
+                    col_series = numeric_feature_source[feature_name]
+                    low, high = float(col_series.min()), float(col_series.max())
+                    if not np.isfinite(low) or not np.isfinite(high) or low == high:
+                        low, high = low - 1.0, low + 1.0
+                    if pareto_choice != "— manual —":
+                        design_idx = int(pareto_choice.split(" ")[1])
+                        default_val = float(pareto_df.iloc[design_idx][feature_name])
+                    else:
+                        default_val = float(col_series.median())
+                    default_val = float(np.clip(default_val, low, high))
+                    slider_values[feature_name] = st.slider(
+                        feature_name, min_value=low, max_value=high, value=default_val, key=f"step4_slider_{feature_name}"
+                    )
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            with readout_col:
+                st.markdown("<div class='control-module'>", unsafe_allow_html=True)
+                st.markdown("<div class='module-title'>LIVE PREDICTION</div>", unsafe_allow_html=True)
+                st.markdown("<div class='module-subtitle'>SURROGATE OUTPUT FOR THE CURRENT DESIGN</div>", unsafe_allow_html=True)
+
+                design_row = pd.DataFrame([slider_values])[feature_names]
+                prediction = predict_surrogate(surrogate_payload, design_row)[0]
+
+                pill_html = "".join(
+                    f"<div class='metric-pill'>{target_name}: {value:.3f}</div>"
+                    for target_name, value in zip(target_names, prediction)
                 )
-            st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='metric-stack'>{pill_html}</div>", unsafe_allow_html=True)
 
-        with readout_col:
-            st.markdown("<div class='control-module'>", unsafe_allow_html=True)
-            st.markdown("<div class='module-title'>LIVE PREDICTION</div>", unsafe_allow_html=True)
-            st.markdown("<div class='module-subtitle'>SURROGATE OUTPUT FOR THE CURRENT DESIGN</div>", unsafe_allow_html=True)
+                metrics_by_target = surrogate_payload.get("metrics", {})
+                for target_name, value in zip(target_names, prediction):
+                    target_metrics = metrics_by_target.get(target_name, {})
+                    r2 = target_metrics.get("r2")
+                    caption = f"Surrogate confidence for {target_name}: R² = {r2:.2f}" if r2 is not None else target_name
+                    st.metric(label=target_name, value=f"{value:.3f}", help=caption)
+                st.markdown("</div>", unsafe_allow_html=True)
 
-            design_row = pd.DataFrame([slider_values])[feature_names]
-            prediction = predict_surrogate(surrogate_payload, design_row)[0]
-
-            pill_html = "".join(
-                f"<div class='metric-pill'>{target_name}: {value:.3f}</div>"
-                for target_name, value in zip(target_names, prediction)
+        # -----------------------------------------------------------
+        # TAB 2 · inverse design (target-seeking)
+        # -----------------------------------------------------------
+        with control_tabs[1]:
+            st.markdown(
+                "<div class='module-subtitle'>DESCRIBE THE OUTCOME YOU WANT — THE GA SEARCHES THE SURROGATE FOR DESIGNS THAT ACHIEVE IT</div>",
+                unsafe_allow_html=True,
             )
-            st.markdown(f"<div class='metric-stack'>{pill_html}</div>", unsafe_allow_html=True)
 
-            metrics_by_target = surrogate_payload.get("metrics", {})
-            for target_name, value in zip(target_names, prediction):
-                target_metrics = metrics_by_target.get(target_name, {})
-                r2 = target_metrics.get("r2")
-                caption = f"Surrogate confidence for {target_name}: R² = {r2:.2f}" if r2 is not None else target_name
-                st.metric(label=target_name, value=f"{value:.3f}", help=caption)
-            st.markdown("</div>", unsafe_allow_html=True)
+            inv_cols = st.columns(len(target_names))
+            inv_targets = {}
+            for col, target_name in zip(inv_cols, target_names):
+                with col:
+                    if target_name in dataset.columns:
+                        series = dataset[target_name].apply(pd.to_numeric, errors="coerce")
+                        lo, hi = float(series.min()), float(series.max())
+                        default_val = float(series.median())
+                    else:
+                        lo, hi, default_val = 0.0, 1.0, 0.5
+                    inv_targets[target_name] = st.number_input(
+                        f"Target {target_name}", value=default_val, min_value=lo, max_value=hi,
+                        key=f"step4_inv_target_{target_name}",
+                    )
+
+            inv_col1, inv_col2 = st.columns([1, 3])
+            with inv_col1:
+                run_inverse = st.button("Search designs", key="step4_inverse_run", type="primary")
+            with inv_col2:
+                inv_quality = st.slider(
+                    "Search effort", 1, 5, 2, key="step4_inverse_effort",
+                    help="Population × generations per search. Higher = more thorough but slower.",
+                )
+
+            if run_inverse:
+                effort = {1: 40, 2: 80, 3: 140, 4: 200, 5: 300}[inv_quality]
+
+                def inverse_predict(X):
+                    return predict_surrogate(
+                        surrogate_payload, pd.DataFrame(np.atleast_2d(np.asarray(X, dtype=float)), columns=feature_names)
+                    )
+
+                with st.spinner("Searching the design space for designs that hit your targets..."):
+                    inv_result = inverse_design(
+                        surrogate_payload, inverse_predict, bounds_list, inv_targets,
+                        pop_size=effort, n_gen=effort, seed=42,
+                    )
+
+                preds = inverse_predict(inv_result.X)
+                match_err = np.sqrt(
+                    ((preds - np.array([inv_targets[t] for t in target_names])) ** 2)
+                )
+                inv_df = pd.DataFrame(inv_result.X, columns=feature_names)
+                for t_i, t_name in enumerate(target_names):
+                    inv_df[f"match_err_{t_name}"] = match_err[:, t_i]
+                inv_df["total_match_error"] = match_err.mean(axis=1)
+                inv_df = inv_df.sort_values("total_match_error").drop_duplicates().reset_index(drop=True)
+
+                st.session_state["inverse_design_results"] = inv_df
+                st.session_state["inverse_design_targets"] = dict(inv_targets)
+
+                st.success(f"Found {len(inv_df)} design(s) approaching your targets — sorted by total match error.")
+                st.dataframe(inv_df.round(4), use_container_width=True, hide_index=True)
+
+                best_pred = preds[0]
+                pill_html = "".join(
+                    f"<div class='metric-pill'>{t}: {v:.3f} ← target {inv_targets[t]:.3f}</div>"
+                    for t, v in zip(target_names, best_pred)
+                )
+                st.markdown(f"<div class='metric-stack'>{pill_html}</div>", unsafe_allow_html=True)
+                st.caption("Match error is measured in the target's own units — lower is closer to your goal.")
+
+                st.download_button(
+                    "Download inverse-design candidates (CSV)",
+                    data=inv_df.to_csv(index=False).encode("utf-8"),
+                    file_name="inverse_design_candidates.csv", mime="text/csv",
+                    key="step4_inverse_download",
+                )
+
+        # -----------------------------------------------------------
+        # TAB 3 · uncertainty audit
+        # -----------------------------------------------------------
+        with control_tabs[2]:
+            st.markdown(
+                "<div class='module-subtitle'>HOW SURE IS THE SURROGATE? SPREAD ACROSS ENSEMBLE MEMBERS / GP POSTERIOR / BOOTSTRAP</div>",
+                unsafe_allow_html=True,
+            )
+            if st.button("Run uncertainty audit on held-out-like data", key="step4_unc_run", type="primary"):
+                with st.spinner("Scoring prediction uncertainty across the dataset..."):
+                    unc_points = numeric_feature_source.dropna()
+                    unc_sample = unc_points.sample(min(len(unc_points), 250), random_state=42)
+                    unc_mean, unc_std = predict_with_uncertainty(surrogate_payload, unc_sample)
+                unc_df = unc_sample.copy()
+                for t_i, t_name in enumerate(target_names):
+                    unc_df[f"pred_{t_name}"] = unc_mean[:, t_i]
+                unc_df["uncertainty"] = unc_std
+                unc_df = unc_df.sort_values("uncertainty", ascending=False).reset_index(drop=True)
+
+                st.session_state["uncertainty_audit"] = unc_df
+                st.success("Uncertainty audit complete — rows sorted by predicted uncertainty (highest first).")
+                st.dataframe(unc_df.round(4), use_container_width=True, hide_index=True)
+                st.caption(
+                    "High-uncertainty rows are where the surrogate disagrees with itself — treat those predictions "
+                    "with caution, or run real simulations there (next tab)."
+                )
+                st.download_button(
+                    "Download uncertainty audit (CSV)",
+                    data=unc_df.to_csv(index=False).encode("utf-8"),
+                    file_name="surrogate_uncertainty_audit.csv", mime="text/csv",
+                    key="step4_unc_download",
+                )
+
+        # -----------------------------------------------------------
+        # TAB 4 · adaptive sampling (suggest next simulations)
+        # -----------------------------------------------------------
+        with control_tabs[3]:
+            st.markdown(
+                "<div class='module-subtitle'>WHICH NEW SIMULATIONS WOULD IMPROVE THE SURROGATE FASTEST? (UNCERTAINTY + COVERAGE)</div>",
+                unsafe_allow_html=True,
+            )
+            sug_col1, sug_col2 = st.columns([1, 3])
+            with sug_col1:
+                run_suggest = st.button("Suggest next simulations", key="step4_suggest_run", type="primary")
+            with sug_col2:
+                n_suggest = st.slider("How many", 2, 12, 5, key="step4_suggest_n")
+
+            if run_suggest:
+                with st.spinner("Scoring candidate designs by uncertainty and coverage..."):
+                    suggestions = suggest_next_simulations(
+                        surrogate_payload, bounds_list,
+                        ["min"] * len(target_names), n_suggest=n_suggest, seed=42,
+                    )
+                st.session_state["suggested_simulations"] = suggestions
+                st.success(f"Top {len(suggestions)} information-rich designs for your next simulation campaign:")
+                st.dataframe(suggestions.round(4), use_container_width=True, hide_index=True)
+                st.caption(
+                    "Acquisition score blends predicted uncertainty with distance from known training data. "
+                    "Run these designs in the expensive simulator, retrain in STEP 2, and the surrogate sharpens where it matters."
+                )
+                st.download_button(
+                    "Download suggestions (CSV)",
+                    data=suggestions.to_csv(index=False).encode("utf-8"),
+                    file_name="suggested_next_simulations.csv", mime="text/csv",
+                    key="step4_suggest_download",
+                )
+
+        # -----------------------------------------------------------
+        # TAB 5 · decision helper (knee + TOPSIS ranking)
+        # -----------------------------------------------------------
+        with control_tabs[4]:
+            has_front = pareto_df is not None and opt_meta is not None and opt_meta["surrogate_index"] == selected_idx
+            if not has_front:
+                st.info("Run an optimization in STEP 3 first — the decision helper ranks a Pareto front.")
+            else:
+                directions_used = opt_meta["directions"]
+
+                st.markdown(
+                    "<div class='module-subtitle'>RANK THE PARETO FRONT — HOW IMPORTANT IS EACH OBJECTIVE TO YOU?</div>",
+                    unsafe_allow_html=True,
+                )
+                weight_cols = st.columns(len(target_names))
+                obj_weights = []
+                for w_col, t_name, d_str in zip(weight_cols, target_names, directions_used):
+                    with w_col:
+                        label = f"{t_name} ({'minimize' if d_str == 'min' else 'maximize'})"
+                        obj_weights.append(st.slider(label, 0.0, 1.0, 1.0, 0.1, key=f"step4_weight_{t_name}"))
+
+                front_F = pareto_df[target_names].to_numpy(dtype=float)
+                knee_idx = pareto_knee(front_F)
+                closeness = topsis_rank(front_F, directions_used, weights=obj_weights)
+                ranked = recommend_designs(
+                    pareto_df[feature_names], pareto_df[target_names],
+                    directions_used, weights=obj_weights, n_top=min(5, len(front_F)),
+                )
+
+                rank_df = pareto_df.copy()
+                rank_df.insert(0, "TOPSIS score", closeness.round(4))
+                rank_df = rank_df.sort_values("TOPSIS score", ascending=False).reset_index(drop=True)
+                rank_df.insert(0, "Rank", range(1, len(rank_df) + 1))
+                st.dataframe(rank_df.round(4), use_container_width=True, hide_index=True)
+
+                rec_pills = "".join(
+                    f"<div class='metric-pill'>#{r_.index + 1} · TOPSIS {r_.score:.3f}</div>"
+                    for r_ in ranked[:3]
+                )
+                st.markdown(f"<div class='metric-stack'>{rec_pills}</div>", unsafe_allow_html=True)
+                st.info(
+                    f"**Knee point: Design {knee_idx}** — the bend of the Pareto front, where improving one "
+                    f"objective further costs disproportionately elsewhere. The table is ranked by TOPSIS "
+                    f"closeness to the ideal point under your weights (0 = anti-ideal, 1 = ideal)."
+                )
+
+                best = ranked[0]
+                st.markdown("**Recommended design (highest TOPSIS closeness):**")
+                rec_col1, rec_col2 = st.columns(2)
+                with rec_col1:
+                    st.markdown("<div class='module-subtitle'>DESIGN VARIABLES</div>", unsafe_allow_html=True)
+                    st.dataframe(pd.DataFrame([best.X]).round(4), use_container_width=True, hide_index=True)
+                with rec_col2:
+                    st.markdown("<div class='module-subtitle'>PREDICTED OUTCOMES</div>", unsafe_allow_html=True)
+                    st.dataframe(pd.DataFrame([best.F]).round(4), use_container_width=True, hide_index=True)
+
+                st.session_state["decision_ranking"] = rank_df
+                st.session_state["decision_knee_index"] = knee_idx
+                st.download_button(
+                    "Download ranked decision table (CSV)",
+                    data=rank_df.to_csv(index=False).encode("utf-8"),
+                    file_name="pareto_decision_ranking.csv", mime="text/csv",
+                    key="step4_decision_download",
+                )
 
 elif current_step == "STEP 5 — REPORTING":
     st.markdown(
@@ -1498,9 +1739,102 @@ elif current_step == "STEP 5 — REPORTING":
                 "```",
                 "",
             ]
+            decision_ranking = st.session_state.get("decision_ranking")
+            if decision_ranking is not None:
+                knee_idx = st.session_state.get("decision_knee_index")
+                report_lines += [
+                    "## Decision Helper",
+                    (
+                        f"Designs ranked by TOPSIS closeness under session weights. "
+                        f"Knee point: Design {knee_idx}."
+                        if knee_idx is not None
+                        else "Designs ranked by TOPSIS closeness under session weights."
+                    ),
+                    "```",
+                    decision_ranking.round(4).to_csv(index=False).strip(),
+                    "```",
+                    "",
+                ]
+        inverse_results = st.session_state.get("inverse_design_results")
+        if inverse_results is not None:
+            inv_targets = st.session_state.get("inverse_design_targets", {})
+            tgt_str = ", ".join(f"{k} = {v:.4g}" for k, v in inv_targets.items())
+            report_lines += [
+                "## Inverse Design (target-seeking)",
+                f"Targets: {tgt_str} · {len(inverse_results)} candidate design(s), best-first.",
+                "```",
+                inverse_results.round(4).to_csv(index=False).strip(),
+                "```",
+                "",
+            ]
+        uncertainty_audit = st.session_state.get("uncertainty_audit")
+        if uncertainty_audit is not None:
+            hi = uncertainty_audit.head(10)
+            report_lines += [
+                "## Surrogate Uncertainty (top-10 highest)",
+                "```",
+                hi.round(4).to_csv(index=False).strip(),
+                "```",
+                "",
+            ]
+        suggested = st.session_state.get("suggested_simulations")
+        if suggested is not None:
+            report_lines += [
+                "## Suggested Next Simulations",
+                "```",
+                suggested.round(4).to_csv(index=False).strip(),
+                "```",
+                "",
+            ]
         report_text = "\n".join(str(line) for line in report_lines)
 
-        export_col1, export_col2 = st.columns(2)
+        html_body = (
+            "<h1>NEPENTHE Auto-SOF — Decision Report</h1>"
+            f"<p><i>Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i></p>"
+            "<style>body{font-family:Segoe UI,Arial,sans-serif;margin:2rem;}"
+            "table{border-collapse:collapse;margin:1rem 0;}"
+            "td,th{border:1px solid #ccc;padding:4px 8px;font-size:13px;}"
+            "th{background:#14213d;color:#fff;}h2{border-bottom:2px solid #14213d;padding-bottom:4px;}</style>"
+            f"<h2>Dataset</h2><p>{len(dataset)} rows × {len(dataset.columns)} columns</p>"
+            f"<h2>Model Performance</h2>{perf_df.round(4).to_html(index=False) if not perf_df.empty else '<p>No trained surrogates.</p>'}"
+        )
+        if pareto_df is not None and opt_meta is not None:
+            html_body += (
+                f"<h2>Pareto Front — {opt_meta.get('algorithm', 'NSGA-II')}</h2>"
+                f"{pareto_df.round(4).to_html(index=False)}"
+            )
+            decision_ranking = st.session_state.get("decision_ranking")
+            if decision_ranking is not None:
+                knee_idx = st.session_state.get("decision_knee_index")
+                html_body += (
+                    f"<h2>Decision Ranking (TOPSIS)</h2>"
+                    f"<p>Knee point: Design {knee_idx} — marked in the table below.</p>"
+                    f"{decision_ranking.round(4).to_html(index=False)}"
+                )
+        inverse_results = st.session_state.get("inverse_design_results")
+        if inverse_results is not None:
+            inv_targets = st.session_state.get("inverse_design_targets", {})
+            html_body += (
+                f"<h2>Inverse Design</h2><p>Targets: {', '.join(f'{k} = {v:.4g}' for k, v in inv_targets.items())}</p>"
+                f"{inverse_results.round(4).to_html(index=False)}"
+            )
+        suggested = st.session_state.get("suggested_simulations")
+        if suggested is not None:
+            html_body += f"<h2>Suggested Next Simulations</h2>{suggested.round(4).to_html(index=False)}"
+        uncertainty_audit = st.session_state.get("uncertainty_audit")
+        if uncertainty_audit is not None:
+            html_body += f"<h2>Uncertainty Audit (top 10)</h2>{uncertainty_audit.head(10).round(4).to_html(index=False)}"
+        html_report = f"<!DOCTYPE html><html><head><meta charset='utf-8'><title>Auto-SOF Decision Report</title></head><body>{html_body}</body></html>"
+
+        export_col0, export_col1, export_col2 = st.columns(3)
+        with export_col0:
+            st.download_button(
+                "🌐 Download Decision Report (HTML)",
+                data=html_report.encode("utf-8"),
+                file_name="nepenthe_decision_report.html",
+                mime="text/html",
+                use_container_width=True,
+            )
         with export_col1:
             st.download_button(
                 "📄 Download Summary Report (Markdown)",
