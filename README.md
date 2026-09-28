@@ -198,18 +198,17 @@ If Auto-SOF supports your research, please cite it:
   author    = {Karimi, Alireza},
   title     = {Auto-SOF: automated surrogate-based multi-objective optimization framework},
   year      = {2026},
-  doi       = {},
   url       = {https://github.com/Alirezza18/nepenthe-auto-sof},
   version   = {1.0.0}
 }
 ```
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+*DOI: reserved — will be minted on the first tagged release.*
 
 ## Author & context
 
 **[Alireza Karimi](https://github.com/Alirezza18)** — Computational Building Scientist,
-PhD candidate (Architecture), Universidad de Sevilla.
+PhD in Architecture (Universidad de Sevilla, 2026).
  
 ## License
 
