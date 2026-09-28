@@ -1,0 +1,31 @@
+{
+  "title": "NEPENTHE | Auto-SOF: Automated Surrogate-based Optimization Framework",
+  "version": "1.0.0",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Karimi, Alireza",
+      "orcid": "0000-0002-6296-9496",
+      "affiliation": "Universidad de Sevilla"
+    }
+  ],
+  "description": "Auto-SOF automates the surrogate-based optimization loop used in simulation-driven design: cross-validated surrogate models (21-model registry, hybrid stacked ensembles), ten optimizers including from-scratch NSGA-II/III and HypE, and Pareto-front decision packages in a no-code six-step Streamlit workflow.",
+  "keywords": [
+    "surrogate modeling",
+    "multi-objective optimization",
+    "NSGA-II",
+    "NSGA-III",
+    "machine learning",
+    "simulation-driven design",
+    "streamlit"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/Alirezza18/nepenthe-auto-sof",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
