@@ -4,7 +4,27 @@ authors:
   - family-names: Karimi
     given-names: Alireza
     orcid: "https://orcid.org/0000-0002-6296-9496"
+    affiliation: "Universidad de Sevilla"
 title: "Auto-SOF: automated surrogate-based multi-objective optimization framework"
 version: 1.0.0
-date-released: "2026-09-24"
+date-released: "2026-09-25"
+license: MIT
 repository-code: "https://github.com/Alirezza18/nepenthe-auto-sof"
+type: software
+keywords:
+  - surrogate modeling
+  - multi-objective optimization
+  - NSGA-II
+  - NSGA-III
+  - machine learning
+  - simulation-driven design
+  - streamlit
+abstract: >-
+  Auto-SOF is a no-code, six-step Streamlit workspace that automates the
+  surrogate-based optimization loop used in simulation-driven design: it fits
+  21 cross-validated regression models (including hybrid stacked ensembles
+  with out-of-fold meta-learning), runs ten optimizers (from-scratch NSGA-II,
+  NSGA-III, Steady-State NSGA-II, HypE, and surrogate-assisted loops), and
+  returns Pareto-optimal designs as a decision package. Reproducibility is
+  explicit: every solver draws randomness from a local seed, and sessions are
+  portable as a single project file.
