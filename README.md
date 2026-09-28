@@ -191,19 +191,35 @@ requirements.txt
 
 ## Cite
 
-If Auto-SOF supports your research, please cite it:
+If Auto-SOF supports your research, please cite it. GitHub also renders a
+**"Cite this repository"** button (below *About*, top-right) generated from
+[`CITATION.cff`](CITATION.cff).
+
+**APA 7**
+
+> Karimi, A. (2026). *Auto-SOF: Automated surrogate-based multi-objective optimization framework* (Version 1.0.0) [Computer software]. GitHub. https://github.com/Alirezza18/nepenthe-auto-sof
+
+**IEEE**
+
+> A. Karimi, "Auto-SOF: Automated surrogate-based multi-objective optimization framework," ver. 1.0.0, GitHub, Sep. 2026. [Online]. Available: https://github.com/Alirezza18/nepenthe-auto-sof
+
+**BibTeX** (BibLaTeX `@software`; for plain BibTeX replace with `@misc`)
 
 ```bibtex
 @software{karimi_2026_auto_sof,
   author    = {Karimi, Alireza},
   title     = {Auto-SOF: automated surrogate-based multi-objective optimization framework},
   year      = {2026},
-  url       = {https://github.com/Alirezza18/nepenthe-auto-sof},
-  version   = {1.0.0}
+  month     = {9},
+  version   = {1.0.0},
+  publisher = {GitHub},
+  url       = {https://github.com/Alirezza18/nepenthe-auto-sof}
 }
 ```
 
-*DOI: reserved — will be minted on the first tagged release.*
+*DOI: reserved — a persistent Zenodo DOI will be added on the next tagged
+release (metadata already prepared via `.zenodo.json`). The citation above
+remains valid and version-pinned.*
 
 ## Author & context
 
